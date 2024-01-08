@@ -1,7 +1,9 @@
 import { createServer, Server } from "http";
 
+import { Cipher } from "../Cipher";
+
 import type { ServerResponse, IncomingMessage } from "http";
-import type { Emitter, HTTPMethod } from "../@types";
+import type { HTTPMethod, Emitter, CipherConfig } from "../@types";
 
 import { validateStart, validateEmitter } from "./decorators";
 
@@ -46,11 +48,15 @@ class EventServer {
 	 * @private
 	 */
 	private corsURL: string | undefined;
+	private cipher: Cipher | undefined;
 
 	/**
 	 * Creates a new server
 	 */
-	constructor() {
+	constructor({ cipher }: { cipher?: CipherConfig }) {
+		if (cipher) {
+			this.cipher = new Cipher(cipher.algorithm, cipher.password, cipher.salt);
+		}
 		this.server = createServer(async (req, res) => {
 			this.res = res;
 			this.req = req;
@@ -204,6 +210,8 @@ class EventServer {
 				req: this.req,
 				params: this.params,
 				body,
+				encrypt: this.cipher?.encrypt.bind(this.cipher),
+				compare: this.cipher?.compare.bind(this.cipher),
 			});
 		});
 	}
@@ -304,15 +312,17 @@ class EventServer {
 
 			const params = {};
 
-			for (let i = 0; i < paramKeys.length; i++) {
-				if (values && !values[i]) {
-					continue;
-				}
+			if (paramKeys) {
+				for (let i = 0; i < paramKeys.length; i++) {
+					if (values && !values[i]) {
+						continue;
+					}
 
-				Object.defineProperty(params, paramKeys[i] as PropertyKey, {
-					value: values![i],
-					enumerable: true,
-				});
+					Object.defineProperty(params, paramKeys[i] as PropertyKey, {
+						value: values![i],
+						enumerable: true,
+					});
+				}
 			}
 
 			this.params = params;
@@ -324,4 +334,5 @@ class EventServer {
  * Creates a new server
  * @returns The new server
  */
-export default () => new EventServer();
+export default ({ cipher }: { cipher?: CipherConfig } = {}) =>
+	new EventServer({ cipher });

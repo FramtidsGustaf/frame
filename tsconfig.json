@@ -4,7 +4,6 @@
 		"lib": ["ESNext"],
 		"outDir": "lib",
 		"removeComments": true,
-		"target": "ES6",
 		// Module resolution
 		"baseUrl": "./",
 		"esModuleInterop": true,

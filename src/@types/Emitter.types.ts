@@ -1,20 +1,17 @@
-import { EventEmitter } from "events";
 import { ServerResponse, IncomingMessage } from "http";
+import { emitter } from "src";
+import { Cipher } from "./Cipher.types";
 
-interface Emitter extends EventEmitter {
-	path: string;
-	subPaths: Map<string, Emitter>;
-	add(path: string, config?: { [key: string]: any }): Emitter;
-	params: Map<string, string[]> | undefined;
-	parentParams: string[] | undefined;
-	hasChildren: boolean;
-}
+type Emitter = ReturnType<typeof emitter>;
 
 interface CtrlProps {
 	res: ServerResponse;
 	req: IncomingMessage;
 	body: any;
 	params: Map<string, string>;
+	compare(data: string, encrypt: string): boolean;
+	encrypt(data: string): string;
+	cipher: Cipher;
 }
 
-export { Emitter, CtrlProps };
+export { CtrlProps, Emitter };

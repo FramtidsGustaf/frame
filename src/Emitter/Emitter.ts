@@ -38,6 +38,8 @@ class EmitterClass extends EventEmitter {
 		super();
 		this.parentParams = parentParams as HTTPMethods;
 
+		//TODO add option to use more configs
+		//TODO for example middlewares. Preferably in an array of functions where the user will be able to, for example, authenticate the request
 		if (config && config.params) {
 			this.params = new Map(Object.entries(config.params));
 		}
@@ -92,4 +94,4 @@ class EmitterClass extends EventEmitter {
  * @returns The new emitter
  */
 export default (path: string, config?: { [key: string]: any }) =>
-	new EmitterClass(path, config) as Emitter;
+	new EmitterClass(path, config);
