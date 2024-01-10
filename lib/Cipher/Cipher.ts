@@ -5,12 +5,6 @@ import {
 	scryptSync,
 } from "crypto";
 
-interface CipherProps {
-	algorithm: string;
-	password: string;
-	salt: string;
-}
-
 export class Cipher {
 	/**
 	 * The algorithm wich will be used to cipher the data
@@ -64,7 +58,7 @@ export class Cipher {
 	 * @example
 	 * const decipher = instance.decrypt(data);
 	 */
-	private decrypt(data: string) {
+	decrypt(data: string) {
 		const textParts = data.split(":");
 		const iv = Buffer.from(textParts[0]!, "hex");
 
@@ -78,15 +72,3 @@ export class Cipher {
 		return Buffer.concat([decrypted, final]).toString();
 	}
 }
-
-/**
- * Creates a new instance of the Cipher class
- * @param algorithm The algorithm to use
- * @param password The password to use
- * @param salt The salt to use
- * @returns A new instance of the Cipher class
- * @example
- * const instance = cipher({ algorithm: "aes-256-cbc", password: "password", salt: "salt" });
- */
-export default ({ algorithm, password, salt }: CipherProps) =>
-	new Cipher(algorithm, password, salt);

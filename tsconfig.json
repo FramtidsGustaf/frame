@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		// project options
 		"lib": ["ESNext"],
-		"outDir": "lib",
+		"outDir": "dist",
 		"removeComments": true,
 		// Module resolution
 		"baseUrl": "./",

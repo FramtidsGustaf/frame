@@ -24,7 +24,10 @@ class EmitterClass extends EventEmitter {
 	 * Whether the current emitter has subpaths, convenient when you want to find the right emitter
 	 */
 	public hasChildren = false;
-
+	/**
+	 * An array that holds the methods that the user wants to validate
+	 */
+	public readonly validate: HTTPMethods;
 	/**
 	 * @param path
 	 * @param config
@@ -38,10 +41,12 @@ class EmitterClass extends EventEmitter {
 		super();
 		this.parentParams = parentParams as HTTPMethods;
 
-		//TODO add option to use more configs
-		//TODO for example middlewares. Preferably in an array of functions where the user will be able to, for example, authenticate the request
 		if (config && config.params) {
 			this.params = new Map(Object.entries(config.params));
+		}
+
+		if (config && config.validate) {
+			this.validate = config.validate;
 		}
 
 		this.path = path;

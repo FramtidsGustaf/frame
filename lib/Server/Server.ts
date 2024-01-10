@@ -3,9 +3,10 @@ import { createServer, Server } from "http";
 import { Cipher } from "../Cipher";
 
 import type { ServerResponse, IncomingMessage } from "http";
-import type { HTTPMethod, Emitter, CipherConfig } from "../@types";
+import type { HTTPMethod, Emitter, CipherConfig, TokenConfig } from "../@types";
 
 import { validateStart, validateEmitter } from "./decorators";
+import { Token } from "../Token";
 
 class EventServer {
 	/**
@@ -49,14 +50,29 @@ class EventServer {
 	 */
 	private corsURL: string | undefined;
 	private cipher: Cipher | undefined;
+	private token: Token | undefined;
 
 	/**
 	 * Creates a new server
 	 */
-	constructor({ cipher }: { cipher?: CipherConfig }) {
+	constructor({
+		cipher,
+		token,
+	}: {
+		cipher?: CipherConfig;
+		token?: TokenConfig;
+	}) {
 		if (cipher) {
 			this.cipher = new Cipher(cipher.algorithm, cipher.password, cipher.salt);
 		}
+
+		if (token) {
+			this.token = new Token({
+				expireTime: token.expireTime,
+				cipher: new Cipher("aes-256-cbc", token.secret, token.salt),
+			});
+		}
+
 		this.server = createServer(async (req, res) => {
 			this.res = res;
 			this.req = req;
@@ -142,6 +158,7 @@ class EventServer {
 			this.setHeaders();
 			this.emit();
 		} catch (error) {
+			console.log(error);
 			this.res.statusCode = 404;
 			this.res.end("Not found");
 		}
@@ -165,6 +182,26 @@ class EventServer {
 	 * @private
 	 */
 	private emit() {
+		if (
+			this.emitter?.validate &&
+			this.emitter?.validate.includes(this.req.method as HTTPMethod)
+		) {
+			if (!this.req.headers.authorization) {
+				this.res.statusCode = 401;
+				this.res.end("Unauthorized");
+				return;
+			}
+			const token = this.req.headers.authorization.split(" ")[1];
+			const isValid = this.token?.validateToken(
+				token!,
+				this.req.socket.remoteAddress!
+			);
+			if (!isValid) {
+				this.res.statusCode = 401;
+				this.res.end("Unauthorized");
+				return;
+			}
+		}
 		/**
 		 * @event GET
 		 */
@@ -212,6 +249,18 @@ class EventServer {
 				body,
 				encrypt: this.cipher?.encrypt.bind(this.cipher),
 				compare: this.cipher?.compare.bind(this.cipher),
+				sendToken: () => {
+					if (!this.token) {
+						throw new Error();
+					}
+					this.res.statusCode = 200;
+					this.res.setHeader("Content-Type", "application/json");
+					return this.res.end(
+						JSON.stringify({
+							token: this.token.createToken(this.req.socket.remoteAddress!),
+						})
+					);
+				},
 			});
 		});
 	}
@@ -334,5 +383,8 @@ class EventServer {
  * Creates a new server
  * @returns The new server
  */
-export default ({ cipher }: { cipher?: CipherConfig } = {}) =>
-	new EventServer({ cipher });
+export default ({
+	cipher,
+	token,
+}: { cipher?: CipherConfig; token?: TokenConfig } = {}) =>
+	new EventServer({ cipher, token });

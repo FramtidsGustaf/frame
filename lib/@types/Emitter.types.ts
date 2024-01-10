@@ -1,6 +1,5 @@
 import { ServerResponse, IncomingMessage } from "http";
-import { emitter } from "src";
-import { Cipher } from "./Cipher.types";
+import { emitter } from "lib";
 
 type Emitter = ReturnType<typeof emitter>;
 
@@ -11,7 +10,7 @@ interface CtrlProps {
 	params: Map<string, string>;
 	compare(data: string, encrypt: string): boolean;
 	encrypt(data: string): string;
-	cipher: Cipher;
+	sendToken(): void;
 }
 
 export { CtrlProps, Emitter };

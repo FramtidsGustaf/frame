@@ -1,18 +1,4 @@
-// import { server } from "./src";
+import { server, emitter, cipher } from "./lib";
+import type types from "./lib/@types";
 
-// import { api } from "./example/emitters/api";
-
-// const PORT = 8030;
-
-// const app = server();
-// app.cors("http://localhost:3000");
-
-// app.addEmitter(api);
-
-// app.start(PORT, ({ error, res }) => {
-// 	if (error) {
-// 		res.statusCode = 500;
-// 		res.end(error.message);
-// 		return;
-// 	}
-// });
+export { server, emitter, cipher, types };
